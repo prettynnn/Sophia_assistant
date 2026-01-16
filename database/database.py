@@ -1,51 +1,53 @@
-from db_config import DB_HOST, DB_PASSWORD, DB_USER, DB_PORT
+from .db_config import *
 from aiomysql import ProgrammingError, IntegrityError, DataError, OperationalError, InterfaceError, InternalError
 from others.config import log
 
 import aiomysql
 
-async def create_database():
+async def connector_to_server():
+    connect = await aiomysql.connect(host=DB_HOST,
+                                     password=DB_PASSWORD,
+                                     user=DB_USER,
+                                     port=DB_PORT,
+                                     autocommit=True)
+    return connect
+        
+async def create_database(connect):
     try:
-        connect = await aiomysql.connect(host=DB_HOST,
-                                         password=DB_PASSWORD,
-                                         user=DB_USER,
-                                         port=DB_PORT,
-                                         autocommit=True)
         csr = await connect.cursor()
-        await csr.execute('CREATE DATABASE IF NOT EXISTS Sophia')
-        return connect
+        await csr.execute('CREATE DATABASE IF NOT EXISTS SophiaBase')
     except InternalError:
         log(f'Error creating database!')
     finally:
         await csr.close()
 
-async def create(connect):
+async def create_table(connect):
     try:
         csr = await connect.cursor()
-        await csr.execute('USE Sophia')
+        await csr.execute('USE SophiaBase')
         await csr.execute('CREATE TABLE IF NOT EXISTS SophiaTable ('
                           'id int PRIMARY KEY AUTO_INCREMENT,'
-                          'role varchar(128),'
-                          'content varchar(8092))')
+                          'users int,'
+                          'roles varchar(128),'
+                          'contents varchar(8092))')
     except OperationalError:
         log('Server is not available!')
-        reconnect = await create_database()
-        return reconnect
     except InternalError:
         log(f'Error connecting database!')
     finally:
         await csr.close()
 
-async def include(connect, role, content):
+async def include_in_table(connect, users, roles, contents):
     try:
         csr = await connect.cursor()
-        await csr.execute('USE Sophia')
-        await csr.execute('INSERT IGNORE INTO SophiaTable (role, content)'
-                          'VALUES (%s, %s)', 
-                          (role, content))
+        await csr.execute('USE SophiaBase')
+        await csr.execute('INSERT IGNORE INTO SophiaTable (users, roles, contents)'
+                          'VALUES (%s, %s, %s)', 
+                          (users, 
+                           roles, 
+                           contents))
     except OperationalError:
         log('Server is not available!')
-        reconnect = await create_database()
     except ProgrammingError:
         log(f'Invalid syntax')
     except DataError:
@@ -57,20 +59,18 @@ async def include(connect, role, content):
     finally:
         await csr.close()
         
-async def select_data(connect, role, content):
+async def select_from_table(connect, users):
     try:
         csr = await connect.cursor()
-        await csr.execute('USE Sophia')
-        await csr.execute('SELECT * FROM SophiaTable (' 
-                          'SELECT role, content FROM messages '
+        await csr.execute('USE SophiaBase')
+        await csr.execute('SELECT users FROM SophiaTable '
+                          'WHERE users = %s '
                           'ORDER BY id DESC '
-                          'LIMIT 40)')
-        role = await csr.fetchall()
-        content = await csr.fetchall()
-        return role, content
+                          'LIMIT 50')
+        users = await csr.fetchall()
+        return users
     except OperationalError:
         log('Server is not available!')
-        reconnect = await create_database()
     except ProgrammingError:
         log('Incorrect a data!')
     finally:
