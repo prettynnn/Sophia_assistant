@@ -19,33 +19,39 @@ async def create_database(connect):
     except InternalError:
         log(f'Error creating database!')
     finally:
-        await csr.close()
+        if csr is None:
+            return
+        else:
+            await csr.close()
 
 async def create_table(connect):
     try:
         csr = await connect.cursor()
         await csr.execute('USE SophiaBase')
         await csr.execute('CREATE TABLE IF NOT EXISTS SophiaTable ('
-                          'id int PRIMARY KEY AUTO_INCREMENT,'
-                          'users int,'
-                          'roles varchar(128),'
-                          'contents varchar(8092))')
+                          'id INT PRIMARY KEY AUTO_INCREMENT, '
+                          'users BIGINT, '
+                          'roles TEXT, '
+                          'contents TEXT)')
+                          
     except OperationalError:
         log('Server is not available!')
     except InternalError:
         log(f'Error connecting database!')
     finally:
-        await csr.close()
-
-async def include_in_table(connect, users, roles, contents):
+        if csr is None:
+            return
+        else:
+            await csr.close()
+async def include_in_table(connect, user, role, content):
     try:
         csr = await connect.cursor()
         await csr.execute('USE SophiaBase')
-        await csr.execute('INSERT IGNORE INTO SophiaTable (users, roles, contents)'
+        await csr.execute('INSERT IGNORE INTO SophiaTable (users, roles, contents) '
                           'VALUES (%s, %s, %s)', 
-                          (users, 
-                           roles, 
-                           contents))
+                          (user, 
+                           role, 
+                           content))
     except OperationalError:
         log('Server is not available!')
     except ProgrammingError:
@@ -57,21 +63,35 @@ async def include_in_table(connect, users, roles, contents):
     except InterfaceError:
         log('Connection to database is refused!')
     finally:
-        await csr.close()
+        if csr is None:
+            return
+        else:
+            await csr.close()
         
-async def select_from_table(connect, users):
+async def select_data_from_table(connect, user, role, content):
     try:
         csr = await connect.cursor()
         await csr.execute('USE SophiaBase')
         await csr.execute('SELECT users FROM SophiaTable '
                           'WHERE users = %s '
+                          'AND roles = %s '
+                          'AND contents = %s '
                           'ORDER BY id DESC '
-                          'LIMIT 50')
-        users = await csr.fetchall()
-        return users
+                          'LIMIT 50', 
+                          (user, 
+                           role, 
+                           content))
+        results = await csr.fetchall()
+        if results != None:
+            return results
+        else:
+            return []
     except OperationalError:
         log('Server is not available!')
     except ProgrammingError:
         log('Incorrect a data!')
     finally:
-        await csr.close()
+        if csr is None:
+            return
+        else:
+            await csr.close()
