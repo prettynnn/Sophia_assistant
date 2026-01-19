@@ -1,7 +1,7 @@
-from .db_config import *
-from aiomysql import ProgrammingError, IntegrityError, DataError, OperationalError, InterfaceError, InternalError
-from others.config import log
+from .db_cfg import *
+from others.cfg import log
 
+from aiomysql import ProgrammingError, IntegrityError, DataError, OperationalError, InterfaceError, InternalError
 import aiomysql
 
 async def connector_to_server():
@@ -68,19 +68,16 @@ async def include_in_table(connect, user, role, content):
         else:
             await csr.close()
         
-async def select_data_from_table(connect, user, role, content):
+async def select_data_from_table(connect, user):
     try:
         csr = await connect.cursor()
         await csr.execute('USE SophiaBase')
-        await csr.execute('SELECT users FROM SophiaTable '
+        await csr.execute('SELECT roles, contents '
+                          'FROM SophiaTable '
                           'WHERE users = %s '
-                          'AND roles = %s '
-                          'AND contents = %s '
                           'ORDER BY id DESC '
                           'LIMIT 50', 
-                          (user, 
-                           role, 
-                           content))
+                          (user, ))
         results = await csr.fetchall()
         if results != None:
             return results
