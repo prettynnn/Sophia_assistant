@@ -1,10 +1,11 @@
-from .db_cfg import *
+from aiomysql.connection import Connection
 from others.cfg import log
+from .db_cfg import DB_HOST, DB_PASSWORD, DB_USER, DB_PORT
 
 from aiomysql import ProgrammingError, IntegrityError, DataError, OperationalError, InterfaceError, InternalError
 import aiomysql
 
-async def connector_to_server():
+async def connector_to_server() -> Connection:
     connect = await aiomysql.connect(host=DB_HOST,
                                      password=DB_PASSWORD,
                                      user=DB_USER,
@@ -12,7 +13,7 @@ async def connector_to_server():
                                      autocommit=True)
     return connect
         
-async def create_database(connect):
+async def create_database(connect: Connection) -> None:
     try:
         csr = await connect.cursor()
         await csr.execute('CREATE DATABASE IF NOT EXISTS SophiaBase')
@@ -24,7 +25,7 @@ async def create_database(connect):
         else:
             await csr.close()
 
-async def create_table(connect):
+async def create_table(connect: Connection) -> None:
     try:
         csr = await connect.cursor()
         await csr.execute('USE SophiaBase')
@@ -32,8 +33,7 @@ async def create_table(connect):
                           'id INT PRIMARY KEY AUTO_INCREMENT, '
                           'users BIGINT, '
                           'roles TEXT, '
-                          'contents TEXT)')
-                          
+                          'contents TEXT)')   
     except OperationalError:
         log('Server is not available!')
     except InternalError:
@@ -43,7 +43,8 @@ async def create_table(connect):
             return
         else:
             await csr.close()
-async def include_in_table(connect, user, role, content):
+            
+async def include_in_table(connect: Connection, user: str, role: str, content: str) -> None:
     try:
         csr = await connect.cursor()
         await csr.execute('USE SophiaBase')
@@ -68,7 +69,7 @@ async def include_in_table(connect, user, role, content):
         else:
             await csr.close()
         
-async def select_data_from_table(connect, user):
+async def select_data_from_table(connect: Connection, user: str) -> tuple | None:
     try:
         csr = await connect.cursor()
         await csr.execute('USE SophiaBase')
