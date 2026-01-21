@@ -3,7 +3,7 @@ from aiogram.enums import ChatAction
 
 from others.cfg import model, client, log
 from database.roles import user, assistant
-from openai import AuthenticationError, InternalServerError, APITimeoutError
+from openai import AuthenticationError, InternalServerError, APITimeoutError, BadRequestError
 from database.memory import connector_to_server, include_in_table, select_data_from_table
 
 text_router = Router()
@@ -41,11 +41,15 @@ async def request_bot_handler(message: types.Message):
                                assistant,
                                response)
         raw_context.clear()
-    except AuthenticationError as x:
-        log(f'Your API token is incorrect, replace his! - {x}')
-    except InternalServerError as y:
-        log(f'Server is overloaded, try again... - {y}')
+    except AuthenticationError as a:
+        log(f'Your API token is incorrect, replace his! - {a}')
+    except InternalServerError as b:
+        log(f'Server is overloaded, try again... - {b}')
         await message.reply(text='Service is overloaded now, try again later!')
-    except APITimeoutError as z:
-        log(f'Server not answers, waiting... - {z}')
+    except APITimeoutError as c:
+        log(f'Server not answers, waiting... - {c}')
         await message.reply(text='Server not reply for your request, please try again!')
+    except BadRequestError as d:
+        log(f'User send is invalid type data, was sent error to him! - {d}')
+        await message.reply(text='I understand only a text, send me text!')
+        await thinking.delete()
