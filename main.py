@@ -2,6 +2,7 @@ from asyncio.exceptions import CancelledError
 from routers.main_routers import main_router
 from aiogram import Dispatcher, Bot
 from tokens import api_key
+from others.cfg import log
 
 from database.memory import connector_to_server, create_database, create_table
 
@@ -21,7 +22,7 @@ async def main():
     try:
         await dspt.start_polling(bot)
     except CancelledError:
-        pass
+        log('Code was completed!)
     
 if __name__ == "__main__":
     asyncio.run(main())
