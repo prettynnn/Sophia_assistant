@@ -22,7 +22,7 @@ async def main():
     try:
         await dspt.start_polling(bot)
     except CancelledError:
-        log('Code was completed!)
+        log('Code was completed!')
     
 if __name__ == "__main__":
     asyncio.run(main())
