@@ -1,15 +1,52 @@
-from aiogram import types, Router
 from aiogram.enums import ChatAction
+from aiogram import types, Router, F
+from aiogram.exceptions import TelegramAPIError, TelegramForbiddenError
 
 from others.cfg import model, client, log
 from database.roles import user, assistant
-from openai import AuthenticationError, InternalServerError, APITimeoutError, BadRequestError
-from database.memory import connector_to_server, include_in_table, select_data_from_table
+from openai import AuthenticationError, InternalServerError, APITimeoutError
+from database.db import connector_to_server, include_in_table, select_data_from_table
 
 text_router = Router()
 
-@text_router.message()
-async def request_bot_handler(message: types.Message):
+@text_router.message(F.photo)
+async def photo_handler(message: types.Message) -> None:
+    await message.reply(
+        text="I don't understand the photo yet, lets communicate in text!"
+        )
+    
+@text_router.message(F.sticker)
+async def sticker_handler(message: types.Message) -> None:
+    await message.reply(
+        text="i also use sticker, but now want read text!"
+        )
+    
+@text_router.message(F.document)
+async def document_handler(message: types.Message) -> None:
+    await message.reply(
+        text="I don't like a document, i like text!"
+        )
+    
+@text_router.message(F.audio)
+async def audio_handler(message: types.Message) -> None:
+    await message.reply(
+        text="The audio is still too complicated for me, tell me your thoughts!"
+        )
+    
+@text_router.message(F.video)
+async def video_handler(message: types.Message) -> None:
+    await message.reply(
+        text="What is video? I know only text!"
+        )
+
+@text_router.message(F.voice)
+async def video_handler(message: types.Message) -> None:
+    await message.reply(
+        text="Voice? What? Only text message!"
+        )
+
+@text_router.message(F.text)
+async def request_bot_handler(message: types.Message) -> None:
     user_id = message.from_user.id
     connect = await connector_to_server()
     try:
@@ -49,7 +86,7 @@ async def request_bot_handler(message: types.Message):
     except APITimeoutError as c:
         log(f'Server not answers, waiting... - {c}')
         await message.reply(text='Server not reply for your request, please try again!')
-    except BadRequestError as d:
-        log(f'User send is invalid type data, was sent error to him! - {d}')
-        await message.reply(text='I understand only a text, send me text!')
-        await thinking.delete()
+    except TelegramAPIError as d:
+        log(f'An error occurred while receiving a response from Telegram! - {d}')
+    except TelegramForbiddenError as e:
+        log(f'This bot is blocked, change a bot! - {e}')
