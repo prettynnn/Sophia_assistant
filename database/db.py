@@ -1,11 +1,12 @@
-from aiomysql.connection import Connection
 from others.cfg import log
-from .db_cfg import DB_HOST, DB_PASSWORD, DB_USER, DB_PORT
+from .config import DB_HOST, DB_PASSWORD, DB_USER, DB_PORT
 
 from aiomysql import ProgrammingError, IntegrityError, DataError, OperationalError, InterfaceError, InternalError
+from aiomysql.connection import Connection
 import aiomysql
 
 async def connector_to_server() -> Connection:
+    global connect
     connect = await aiomysql.connect(host=DB_HOST,
                                      password=DB_PASSWORD,
                                      user=DB_USER,
@@ -69,7 +70,7 @@ async def include_in_table(connect: Connection, user: str, role: str, content: s
         else:
             await csr.close()
         
-async def select_data_from_table(connect: Connection, user: str) -> tuple | None:
+async def select_data_from_table(connect: Connection, user: str) -> tuple | list | None:
     try:
         csr = await connect.cursor()
         await csr.execute('USE SophiaBase')
@@ -77,7 +78,7 @@ async def select_data_from_table(connect: Connection, user: str) -> tuple | None
                           'FROM SophiaTable '
                           'WHERE users = %s '
                           'ORDER BY id DESC '
-                          'LIMIT 50', 
+                          'LIMIT 30', 
                           (user, ))
         results = await csr.fetchall()
         if results != None:
