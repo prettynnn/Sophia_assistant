@@ -18,7 +18,7 @@ async def photo_handler(message: types.Message) -> None:
 @text_router.message(F.sticker)
 async def sticker_handler(message: types.Message) -> None:
     await message.reply(
-        text="i also use sticker, but now want read text!"
+        text="I also use sticker, but now want read text!"
         )
     
 @text_router.message(F.document)
