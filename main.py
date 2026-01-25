@@ -21,7 +21,7 @@ async def main():
     await create_table(connect)
     try:
         await dspt.start_polling(bot)
-    except CancelledError:
+    except KeyboardInterrupt:
         log('Code was completed!')
     
 if __name__ == "__main__":
