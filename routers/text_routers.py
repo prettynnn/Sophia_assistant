@@ -18,7 +18,7 @@ async def photo_handler(message: types.Message) -> None:
 @text_router.message(F.sticker)
 async def sticker_handler(message: types.Message) -> None:
     await message.reply(
-        text="I also use sticker, but now want read text!"
+        text="i also use sticker, but now want read text!"
         )
     
 @text_router.message(F.document)
@@ -82,10 +82,14 @@ async def request_bot_handler(message: types.Message) -> None:
         log(f'Your API token is incorrect, replace his! - {a}')
     except InternalServerError as b:
         log(f'Server is overloaded, try again... - {b}')
-        await message.reply(text='Service is overloaded now, try again later!')
+        await message.reply(
+            text='Service is overloaded now, try again later!'
+            )
     except APITimeoutError as c:
         log(f'Server not answers, waiting... - {c}')
-        await message.reply(text='Server not reply for your request, please try again!')
+        await message.reply(
+            text='Server not reply for your request, please try again!'
+            )
     except TelegramAPIError as d:
         log(f'An error occurred while receiving a response from Telegram! - {d}')
     except TelegramForbiddenError as e:
