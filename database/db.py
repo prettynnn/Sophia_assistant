@@ -6,7 +6,6 @@ from aiomysql.connection import Connection
 import aiomysql
 
 async def connector_to_server() -> Connection:
-    global connect
     connect = await aiomysql.connect(host=DB_HOST,
                                      password=DB_PASSWORD,
                                      user=DB_USER,
