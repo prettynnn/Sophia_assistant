@@ -1,6 +1,6 @@
+from aiogram import types, Router
 from aiogram.filters import Command
 from aiogram.enums import ChatAction
-from aiogram import types, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramConflictError, TelegramBadRequest
 
@@ -19,7 +19,6 @@ start_router = Router()
 async def start_handler(message: types.Message, state: FSMContext) -> None:
     user_id = message.from_user.id
     stick_id = random.choice(stickers)
-    
     try:
         connect = await connector_to_server()
         data = await select_data_from_table(connect, 
